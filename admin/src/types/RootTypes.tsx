@@ -1,0 +1,43 @@
+
+export interface AdminTypes {
+  createdAt: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  role: string;
+  updatedAt: string;
+  __v: number;
+  _id: string;
+}
+
+export interface CustomerTypes {
+  _id: string;
+  createdAt: string;
+  name:string
+phone: string;
+payed: boolean;
+location: string;
+buyedProducts: BuyedProductTypes[];
+
+}
+
+export interface BuyedProductTypes {
+    _id: string;
+    product: string;
+    size: string;
+    price: number;
+    type: string;
+    quantity: number;
+    date: string;
+  }
+export interface ProductTypes {
+  _id: string
+  createdAt: string
+  updatedAt: string
+  name: string
+  size: string
+  price: number
+  type: string
+}
+
+

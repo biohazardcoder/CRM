@@ -1,0 +1,32 @@
+import mongoose from "mongoose";
+
+const customerSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  location: {
+    type: String,
+    required: true,
+    },
+    payed: {
+        type: Boolean,
+        default: false,
+    },
+    buyedProducts: [{
+        product: { type:String},
+        size: { type: String },
+        price: { type: Number, min: 0 },
+        type: { type: String },
+        quantity: { type: Number, min: 1 },
+        date: { type: Date, default: Date.now },
+    }],
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Customer", customerSchema);

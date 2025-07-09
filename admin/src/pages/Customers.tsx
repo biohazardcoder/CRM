@@ -1,0 +1,263 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Loader from "@/components/ui/loader";
+import { Sheet } from "@/components/ui/sheet";
+import { fetcher } from "@/middlewares/Fetcher";
+import { AddCustomer } from "@/modules/AddCustomer";
+import { generateCustomerDoc } from "@/lib/generateWordDocument";
+import { CustomerTypes } from "@/types/RootTypes";
+import { Check, EllipsisVertical, List, Paperclip, Pen, Trash } from "lucide-react";
+import useSWR from "swr";
+import { Input } from "@/components/ui/input";
+import { Fetch } from "@/middlewares/Fetch";
+import { toast } from "sonner";
+import { Modal } from "@/components/ui/modal";
+
+export const Customers = () => {
+  const { data: customers, isLoading, error, mutate } = useSWR("/customer", fetcher);
+  const [payed, setPayed] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerTypes | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [confirmPayedId, setConfirmPayedId] = useState<string | null>(null);
+  const [filterDate, setFilterDate] = useState("");
+const [editMode, setEditMode] = useState(false);
+const [editData, setEditData] = useState({
+  name: "",
+  phone: "",
+  location: "",
+});
+const handleEditCustomer = (customer: CustomerTypes) => {
+  setEditData({
+    name: customer.name,
+    phone: customer.phone,
+    location: customer.location,
+  });
+  setSelectedCustomer(customer);
+  setEditMode(true);
+};
+
+const saveEditedCustomer = async () => {
+  if (!selectedCustomer?._id) return;
+
+  try {
+    await Fetch.put(`/customer/${selectedCustomer._id}`, editData);
+    mutate();
+    window.location.reload();
+  } catch (error) {
+    toast.error("Xaridorni yangilashda xatolik yuz berdi");
+    console.error(error);
+  }
+};
+
+  const handleTogglePayed = async (id: string) => {
+    try {
+      await Fetch.patch(`/customer/payed/${id}`);
+      toast.success("Xaridor to'lagan deb belgilandi");
+      mutate();
+    } catch (err) {
+      console.error("Toggle payed error:", err);
+    } finally {
+      setConfirmPayedId(null);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    try {
+      await Fetch.delete(`/customer/${id}`);
+      toast.success("Xaridor muvaffaqiyatli o'chirildi");
+      mutate();
+    } catch (err) {
+      console.error("Delete customer error:", err);
+    }
+  };
+
+  const filteredCustomers = customers?.filter((c: any) => {
+    const matchesPayed = c.payed === payed;
+    const matchesDate = filterDate ? c.createdAt.startsWith(filterDate) : true;
+    return matchesPayed && matchesDate;
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-lg font-medium text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 h-screen overflow-y-auto">
+      <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold">Xaridorlar</h1>
+        <Sheet>
+          <AddCustomer />
+        </Sheet>
+      </div>
+
+      <div className="flex items-center gap-4 mb-4 flex-wrap">
+        <Button variant={payed ? "default" : "secondary"} onClick={() => setPayed(true)}>
+          To'lagan
+        </Button>
+        <Button variant={!payed ? "default" : "secondary"} onClick={() => setPayed(false)}>
+          To'lamagan
+        </Button>
+        <Input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          className="w-[200px] bg-primary text-white"
+        />
+      </div>
+
+      {filteredCustomers?.length <= 0 ? (
+        <div className="flex justify-center items-center h-40">
+          <p className="text-lg font-medium text-sky-400">
+            Mos keluvchi xaridorlar topilmadi
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm border border-gray-700 text-white">
+            <thead className="bg-[#111]">
+              <tr>
+                <th className="p-2 border">#</th>
+                <th className="p-2 border">Ism</th>
+                <th className="p-2 border">Telefon</th>
+                <th className="p-2 border">Manzil</th>
+                <th className="p-2 border">Sana</th>
+                <th className="p-2 border">Holat</th>
+                <th className="p-2 border">Amallar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCustomers.map((c: CustomerTypes, idx: number) => (
+                <tr key={c._id} className="border border-gray-600 bg-primary-foreground text-primary">
+                  <td className="p-2">{idx + 1}</td>
+                  <td className="p-2">{c.name}</td>
+                  <td className="p-2">{c.phone}</td>
+                  <td className="p-2">{c.location}</td>
+                  <td className="p-2">{c.createdAt.slice(0, 10)}</td>
+                  <td className="p-2">
+                    {c.payed ? (
+                      <span className="text-green-500">To'lagan</span>
+                    ) : (
+                      <span className="text-red-500">To'lamagan</span>
+                    )}
+                  </td>
+                  <td className="p-2 flex items-center gap-2">
+                    {!c.payed && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="bg-green-500 hover:bg-green-600"
+                        onClick={() => setConfirmPayedId(c._id)}
+                      >
+                        <Check size={16} />
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => {
+                        setSelectedCustomer(c);
+                        setOpenDialog(true);
+                      }}
+                    >
+                      <List size={16} />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <EllipsisVertical className="text-zinc-400" size={20} />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+
+<DropdownMenuItem
+  onClick={() => generateCustomerDoc(c)}
+  className="flex gap-2 text-black"
+>
+  <Paperclip size={16} /> Yuklab olish
+</DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => handleEditCustomer(c)}
+                          className="flex gap-2 text-blue-500"
+                        >
+                          <Pen size={16} /> Tahrirlash
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteCustomer(c._id)}
+                          className="flex gap-2 text-red-600"
+                        >
+                          <Trash size={16} /> O'chirish
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+<Modal open={editMode} onClose={() => setEditMode(false)} title="Xaridorni tahrirlash">
+        <div className="space-y-3">
+          <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} placeholder="Ism" />
+          <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} placeholder="Telefon" />
+          <Input value={editData.location} onChange={(e) => setEditData({ ...editData, location: e.target.value })} placeholder="Manzil" />
+          <Button className="w-full" onClick={saveEditedCustomer}>Saqlash</Button>
+        </div>
+      </Modal>
+ 
+
+
+      <Modal open={openDialog} onClose={() => setOpenDialog(false)} title="Mahsulotlar ro'yxati">
+        <div className="space-y-3 max-h-[300px] overflow-y-auto">
+          {selectedCustomer?.buyedProducts?.map((product, idx) => (
+            <div key={idx} className="border-b pb-2">
+              <p className="flex justify-between">
+                <b>{product.product}</b> ({product.size}) — {product.price.toLocaleString()} so'm
+              </p>
+              <p>
+                {product.quantity} {product.type} = {(product.quantity * product.price).toLocaleString()} so'm
+              </p>
+            </div>
+          ))}
+          {selectedCustomer?.buyedProducts && (
+            <div className="pt-4 text-right font-bold">
+              Umumiy:{" "}
+              {selectedCustomer.buyedProducts
+                .reduce((acc, p) => acc + p.price * p.quantity, 0)
+                .toLocaleString()}{" "}
+              so'm
+            </div>
+          )}
+        </div>
+      </Modal>
+
+
+
+
+      <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash">
+        <p>Ushbu mijoz to'lagan deb belgilansinmi?</p>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="destructive" onClick={() => setConfirmPayedId(null)}>Yo‘q</Button>
+          <Button onClick={() => confirmPayedId && handleTogglePayed(confirmPayedId)}>Ha, belgilash</Button>
+        </div>
+      </Modal>
+    </div>
+  );
+};
