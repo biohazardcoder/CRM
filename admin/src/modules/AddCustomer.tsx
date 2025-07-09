@@ -192,6 +192,15 @@ export function AddCustomer() {
               <div className="mt-4 border-t pt-4 text-sm text-gray-300 space-y-2">
                 <p>📦 Umumiy mahsulotlar miqdori: <span className="text-white">{totalCount}</span></p>
                 <p>💰 Umumiy summa: <span className="text-white">{totalAmount.toLocaleString()} so'm</span></p>
+         
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? "Yaratilmoqda..." : "Yaratish"}
+            </Button>
               </div>
             </>
           )}
