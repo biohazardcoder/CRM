@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Fetch } from "@/middlewares/Fetch";
 import useSWR from "swr";
 import { fetcher } from "@/middlewares/Fetcher";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function AddProduct() {
   const [formData, setFormData] = useState({
@@ -91,24 +92,50 @@ export function AddProduct() {
 
         <div className="flex flex-col gap-4 py-4">
           {["name", "size", "price", "type"].map((field) => (
-            <div className="space-y-1" key={field}>
-              <Label htmlFor={field}>
-                {{
-                  name: "Mahsulot nomi *",
-                  size: "O'lcham *",
-                  price: "Narx *",
-                  type: "Tur *",
-                }[field]}
-              </Label>
-              <Input
-                id={field}
-                value={(formData as any)[field]}
-                onChange={handleInputChange}
-                className={errors[field] ? "border-red-500" : ""}
-              />
-              {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
-            </div>
-          ))}
+  <div className="space-y-1" key={field}>
+    <Label htmlFor={field}>
+      {{
+        name: "Mahsulot nomi *",
+        size: "O'lcham *",
+        price: "Narx *",
+        type: "Tur *",
+      }[field]}
+    </Label>
+
+    {field === "type" ? (
+      <Select
+        value={formData.type}
+        onValueChange={(value) => setFormData({ ...formData, type: value })}
+      >
+        <SelectTrigger className={errors.type ? "border-red-500" : ""}>
+          <SelectValue placeholder="Tur tanlang" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="dona">Dona</SelectItem>
+          <SelectItem value="kg">Kilogramm</SelectItem>
+          <SelectItem value="tonna">Tonna</SelectItem>
+          <SelectItem value="qop">Qop</SelectItem>
+          <SelectItem value="litr">Litr</SelectItem>
+          <SelectItem value="metr">Metr</SelectItem>
+          <SelectItem value="idish">Idish</SelectItem>
+          <SelectItem value="mashina">Mashina</SelectItem>
+          <SelectItem value="to'plam">To'plam</SelectItem>
+        </SelectContent>
+      </Select>
+    ) : (
+      <Input
+        id={field}
+        value={(formData as any)[field]}
+        onChange={handleInputChange}
+        className={errors[field] ? "border-red-500" : ""}
+      />
+    )}
+
+    {errors[field] && (
+      <span className="text-red-500 text-sm">{errors[field]}</span>
+    )}
+  </div>
+))}
         </div>
 
         <SheetFooter>

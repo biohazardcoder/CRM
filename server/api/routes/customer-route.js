@@ -1,13 +1,14 @@
 import express from "express";
 import { getAllCustomers,createCustomer,deleteCustomer,getCustomerById,updateCustomer, ToggleCustomerPayed } from "../controllers/customer-contoller.js";
+import isExisted from "../middlewares/isExisted.js";
 
 const router = express.Router();
 
-router.get("/", getAllCustomers);
-router.get("/:id", getCustomerById);
-router.post("/", createCustomer);
-router.put("/:id", updateCustomer);
-router.delete("/:id", deleteCustomer);
-router.patch("/payed/:id", ToggleCustomerPayed);
+router.get("/", isExisted, getAllCustomers);
+router.get("/:id", isExisted, getCustomerById);
+router.post("/", isExisted, createCustomer);
+router.put("/:id", isExisted, updateCustomer);
+router.delete("/:id", isExisted, deleteCustomer);
+router.patch("/payed/:id", isExisted, ToggleCustomerPayed);
 
 export default router;

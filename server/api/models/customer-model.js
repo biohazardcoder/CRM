@@ -25,6 +25,10 @@ const customerSchema = new mongoose.Schema({
         quantity: { type: Number, min: 1 },
         date: { type: Date, default: Date.now },
     }],
+  date: {
+    type: String,
+    default: new Date().toISOString().slice(0, 10), 
+  }
   },
   { timestamps: true }
 );

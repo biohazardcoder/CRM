@@ -16,12 +16,15 @@ import { Fetch } from "@/middlewares/Fetch";
 import useSWR from "swr";
 import { fetcher } from "@/middlewares/Fetcher";
 import { ProductTypes } from "@/types/RootTypes";
+import { cn } from "@/lib/utils";
 
 export function AddCustomer() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     location: "",
+    payed: false,
+    date: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedProducts, setSelectedProducts] = useState<{ [id: string]: number }>({});
@@ -38,7 +41,7 @@ export function AddCustomer() {
   );
 
   const resetForm = () => {
-    setFormData({ name: "", phone: "", location: "" });
+    setFormData({ name: "", phone: "", location: "", payed: false, date: "" });
     setSelectedProducts({});
     setErrors({});
     setStep("select-products");
@@ -188,6 +191,32 @@ export function AddCustomer() {
                   )}
                 </div>
               ))}
+                <div >
+                  <Label htmlFor="date" className="text-sm text-gray-300">
+                    Sana *
+                  </Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className={cn(errors.date ? "border-red-500" : "", "custom-date")}
+                  />
+                  {errors.date && (
+                    <span className="text-red-500 text-sm">{errors.date}</span>
+                  )}
+                </div>
+              <div className="flex items-center space-x-2 mt-4">
+                <Label className="text-sm text-gray-300 flex items-center">
+                  <Input
+                    type="checkbox"
+                    className="w-4 h-4 mr-2"
+                    checked={formData.payed}
+                    onChange={(e) => setFormData({ ...formData, payed: e.target.checked })}
+                  />
+                  To‘lagan
+                </Label>
+              </div>
 
               <div className="mt-4 border-t pt-4 text-sm text-gray-300 space-y-2">
                 <p>📦 Umumiy mahsulotlar miqdori: <span className="text-white">{totalCount}</span></p>

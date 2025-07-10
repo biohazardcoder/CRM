@@ -11,7 +11,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { fetcher } from "@/middlewares/Fetcher";
 import { AddCustomer } from "@/modules/AddCustomer";
 import { generateCustomerDoc } from "@/lib/generateWordDocument";
-import { CustomerTypes } from "@/types/RootTypes";
+import { BuyedProductTypes, CustomerTypes } from "@/types/RootTypes";
 import { Check, EllipsisVertical, List, Paperclip, Pen, Trash } from "lucide-react";
 import useSWR from "swr";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,10 @@ export const Customers = () => {
   const [confirmPayedId, setConfirmPayedId] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState("");
 const [editMode, setEditMode] = useState(false);
+const [search, setSearch] = useState("");
+const [openAllProductsModal, setOpenAllProductsModal] = useState(false);
+
+
 const [editData, setEditData] = useState({
   name: "",
   phone: "",
@@ -77,11 +81,50 @@ const saveEditedCustomer = async () => {
     }
   };
 
-  const filteredCustomers = customers?.filter((c: any) => {
-    const matchesPayed = c.payed === payed;
-    const matchesDate = filterDate ? c.createdAt.startsWith(filterDate) : true;
-    return matchesPayed && matchesDate;
-  });
+  const filteredCustomers = customers?.reverse().filter((c: CustomerTypes) => {
+  const matchesPayed = c.payed === payed;
+  const matchesDate = filterDate ? c.date.startsWith(filterDate) : true;
+  const matchesSearch = search
+    ? c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.phone.includes(search)
+    : true;
+
+  return matchesPayed && matchesDate && matchesSearch;
+});
+const totalAmount = filteredCustomers?.reduce((acc:number, customer:CustomerTypes) => {
+  const customerTotal = customer.buyedProducts?.reduce(
+    (sum, product) => sum + product.price * product.quantity,
+    0
+  ) || 0;
+  return acc + customerTotal;
+}, 0) || 0;
+const groupedProductsMap = new Map();
+
+const allProducts = filteredCustomers?.flatMap((customer: CustomerTypes) =>
+  customer.buyedProducts?.map((product: BuyedProductTypes) => ({
+    ...product,
+    date: customer.date,
+    customerName: customer.name,
+  }))
+) || [];
+
+allProducts.forEach((product: BuyedProductTypes) => {
+  const key = `${product.product}_${product.type}_${product.size}_${product.price}`;
+  if (!groupedProductsMap.has(key)) {
+    groupedProductsMap.set(key, {
+      ...product,
+      quantity: 0,
+      totalPrice: 0,
+    });
+  }
+  const existing = groupedProductsMap.get(key);
+  existing.quantity += product.quantity;
+  existing.totalPrice += product.price * product.quantity;
+});
+
+const groupedProducts = Array.from(groupedProductsMap.values());
+
+
 
   if (isLoading) {
     return (
@@ -115,12 +158,19 @@ const saveEditedCustomer = async () => {
         <Button variant={!payed ? "default" : "secondary"} onClick={() => setPayed(false)}>
           To'lamagan
         </Button>
-        <Input
-          type="date"
-          value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
-          className="w-[200px] bg-primary text-white"
-        />
+      <Input
+        type="date"
+        value={filterDate}
+        onChange={(e) => setFilterDate(e.target.value)}
+        className="w-[200px] bg-primary text-white custom-date"
+      />
+          <Input
+        type="text"
+        placeholder="Ism yoki telefon orqali qidirish"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-[250px] bg-primary text-white"
+      />
       </div>
 
       {filteredCustomers?.length <= 0 ? (
@@ -150,7 +200,7 @@ const saveEditedCustomer = async () => {
                   <td className="p-2">{c.name}</td>
                   <td className="p-2">{c.phone}</td>
                   <td className="p-2">{c.location}</td>
-                  <td className="p-2">{c.createdAt.slice(0, 10)}</td>
+                  <td className="p-2">{c.date}</td>
                   <td className="p-2">
                     {c.payed ? (
                       <span className="text-green-500">To'lagan</span>
@@ -184,14 +234,12 @@ const saveEditedCustomer = async () => {
                         <EllipsisVertical className="text-zinc-400" size={20} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-
-<DropdownMenuItem
-  onClick={() => generateCustomerDoc(c)}
-  className="flex gap-2 text-black"
->
-  <Paperclip size={16} /> Yuklab olish
-</DropdownMenuItem>
-
+                      <DropdownMenuItem
+                        onClick={() => generateCustomerDoc(c)}
+                        className="flex gap-2 text-black"
+                      >
+                        <Paperclip size={16} /> Yuklab olish
+                      </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleEditCustomer(c)}
                           className="flex gap-2 text-blue-500"
@@ -210,16 +258,27 @@ const saveEditedCustomer = async () => {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="bg-[#111] text-white">
+                <td colSpan={5} className="text-right p-4">Umumiy summa:</td>
+                <td className="font-semibold">{totalAmount.toLocaleString()} so'm</td>
+                <td>
+                  <Button size="sm" variant="secondary" onClick={() => setOpenAllProductsModal(true)}>
+                    Tafsilotlar
+                  </Button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}
-<Modal open={editMode} onClose={() => setEditMode(false)} title="Xaridorni tahrirlash">
-        <div className="space-y-3">
-          <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} placeholder="Ism" />
-          <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} placeholder="Telefon" />
-          <Input value={editData.location} onChange={(e) => setEditData({ ...editData, location: e.target.value })} placeholder="Manzil" />
-          <Button className="w-full" onClick={saveEditedCustomer}>Saqlash</Button>
-        </div>
+       <Modal open={editMode} onClose={() => setEditMode(false)} title="Xaridorni tahrirlash">
+           <div className="space-y-3">
+            <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} placeholder="Ism" />
+            <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} placeholder="Telefon" />
+            <Input value={editData.location} onChange={(e) => setEditData({ ...editData, location: e.target.value })} placeholder="Manzil" />
+            <Button className="w-full" onClick={saveEditedCustomer}>Saqlash</Button>
+          </div>
       </Modal>
  
 
@@ -246,9 +305,7 @@ const saveEditedCustomer = async () => {
             </div>
           )}
         </div>
-      </Modal>
-
-
+      </Modal>          
 
 
       <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash">
@@ -258,6 +315,39 @@ const saveEditedCustomer = async () => {
           <Button onClick={() => confirmPayedId && handleTogglePayed(confirmPayedId)}>Ha, belgilash</Button>
         </div>
       </Modal>
+
+    <Modal open={openAllProductsModal} onClose={() => setOpenAllProductsModal(false)} title="Umumiy mahsulotlar" className="max-w-4xl">
+  <div className="max-h-[400px] overflow-y-auto">
+    {groupedProducts.length === 0 ? (
+      <p className="text-muted">Mahsulotlar mavjud emas</p>
+    ) : (
+      <table className="w-full text-sm border border-gray-700 text-white">
+        <thead className="bg-[#111]">
+          <tr>
+            <th className="p-4 border">Mahsulot</th>
+            <th className="p-4 border">Turi</th>
+            <th className="p-4 border">O‘lchami</th>
+            <th className="p-4 border">Narxi</th>
+            <th className="p-4 border">Soni</th>
+            <th className="p-4 border">Jami</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white text-black">
+          {groupedProducts.map((p, i) => (
+            <tr key={i} className="border border-gray-600">
+              <td className="p-4">{p.product}</td>
+              <td className="p-4">{p.type}</td>
+              <td className="p-4">{p.size}</td>
+              <td className="p-4">{p.price.toLocaleString()} so'm</td>
+              <td className="p-4">{p.quantity}</td>
+              <td className="p-4">{p.totalPrice.toLocaleString()} so'm</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</Modal>
     </div>
   );
 };

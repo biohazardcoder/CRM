@@ -90,3 +90,7 @@
   scroll-behavior: smooth;
   scrollbar-width: none;
 }
+/* Kalendarning iconi uchun oq rang */
+.custom-date::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}

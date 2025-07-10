@@ -23,8 +23,9 @@ export const getCustomerById = async (req, res) => {
 
 export const createCustomer = async (req, res) => {
   try {
-    const { name, phone, location, buyedProducts } = req.body;
-    const newCustomer = new Customer({ name, phone, location, buyedProducts });
+    const { name, phone, location, buyedProducts, payed, date } = req.body;
+    const newCustomer = new Customer({ name, phone, location, buyedProducts, payed, date });
+
     await newCustomer.save();
     res.status(201).json(newCustomer);
   } catch (error) {

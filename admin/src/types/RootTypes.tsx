@@ -15,6 +15,7 @@ export interface CustomerTypes {
   createdAt: string;
   name:string
 phone: string;
+date: string;
 payed: boolean;
 location: string;
 buyedProducts: BuyedProductTypes[];
