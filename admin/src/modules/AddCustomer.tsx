@@ -33,8 +33,8 @@ export function AddCustomer() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: products } = useSWR<ProductTypes[]>("/product", fetcher);
-  const { mutate } = useSWR("/customer", fetcher);
+  const { data: products,mutate } = useSWR<ProductTypes[]>("/product", fetcher);
+  const CustomerData = useSWR("/customer", fetcher);
 
   const filteredProducts = products?.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -78,6 +78,7 @@ export function AddCustomer() {
         buyedProducts,
       });
       await mutate();
+      await CustomerData.mutate()
       toast.success("Mijoz muvaffaqiyatli qo‘shildi!");
       setIsSheetOpen(false);
       resetForm();
