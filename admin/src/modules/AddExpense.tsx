@@ -104,6 +104,7 @@ export function AddExpense() {
         name={field}
         type={field === "amount" ? "number" : field === "date" ? "date" : "text"}
         value={formData[field]}
+        className="custom-date"
         onChange={(e) =>
           setFormData({ ...formData, [field]: e.target.value })
         }
