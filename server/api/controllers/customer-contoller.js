@@ -24,9 +24,8 @@ export const getCustomerById = async (req, res) => {
 
 export const createCustomer = async (req, res) => {
   try {
-    const { name, phone, location, buyedProducts, payed, date, days } = req.body;
-
-    let total = 0;
+    const { name, phone, location, buyedProducts,  date } = req.body;
+    
 
     for (const item of buyedProducts) {
       const product = await Product.findById(item.productId);
@@ -42,7 +41,6 @@ export const createCustomer = async (req, res) => {
       product.stock -= item.quantity;
       await product.save();
 
-      total += product.price * item.quantity;
 
       item.price = product.price;
     }
@@ -52,12 +50,9 @@ export const createCustomer = async (req, res) => {
       phone,
       location,
       buyedProducts,
-      payed,
       date,
-      days,
-      all: total,
     });
-
+    
     await newCustomer.save();
     res.status(201).json(newCustomer);
   } catch (error) {

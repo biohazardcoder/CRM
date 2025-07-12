@@ -23,7 +23,6 @@ export function AddCustomer() {
     name: "",
     phone: "",
     location: "",
-    payed: false,
     date: "",
     days: 1, 
   });
@@ -42,7 +41,7 @@ export function AddCustomer() {
   );
 
   const resetForm = () => {
-    setFormData({ name: "", phone: "", location: "", payed: false, date: "", days: 1 });
+    setFormData({ name: "", phone: "", location: "",  date: "", days: 1 });
     setSelectedProducts({});
     setErrors({});
     setStep("select-products");
@@ -208,31 +207,6 @@ export function AddCustomer() {
                     <span className="text-red-500 text-sm">{errors.date}</span>
                   )}
                 </div>
-              <div className="flex items-center space-x-2 mt-4">
-                <Label className="text-sm text-gray-300 flex items-center">
-                  <Input
-                    type="checkbox"
-                    className="w-4 h-4 mr-2"
-                    checked={formData.payed}
-                    onChange={(e) => setFormData({ ...formData, payed: e.target.checked })}
-                  />
-                  To‘lagan
-                </Label>
-                {formData.payed && (
-                  <div className="flex items-center space-x-2">
-                    <Input
-                    type="number" 
-                    min={1}
-                    value={formData.days}
-                    onChange={(e) => setFormData({ ...formData, days: parseInt(e.target.value) || 1 })}
-                    className="w-20 bg-[#2c2c2c] text-white"
-                    placeholder="Kunlar"
-                  />
-                  <h1>Kun</h1>
-                  </div>
-                )  
-                  }
-              </div>
               <div className="mt-4 border-t pt-4 text-sm text-gray-300 space-y-2">
                 <p>📦 Umumiy mahsulotlar miqdori: <span className="text-white">{totalCount}</span></p>
                 <p>💰 Umumiy summa: <span className="text-white">{totalAmount.toLocaleString()} so'm</span></p>
