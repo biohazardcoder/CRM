@@ -5,6 +5,7 @@ import {
   Package,
   Users,
   User,
+  Wallet2,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
@@ -36,6 +37,11 @@ export function AppSidebar() {
       title: "Xaridorlar",
       url: "/customers",
       icon: Users,
+    },
+    {
+      title: "Xarajatlar",
+      url: "/expenses",
+      icon: Wallet2,
     },
      {
       title: "Adminlar",

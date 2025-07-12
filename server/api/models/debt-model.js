@@ -1,29 +1,27 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema({
+const debtSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
   },
-  size: {
+  phone: {
     type: String,
     required: true,
   },
-  price: {
-    type: String,
-    required: true,
-    min: 0,
-  },
-  type: { 
+  location: {
     type: String,
     required: true,
   },
-  stock: {
+  amount: {
     type: Number,
     required: true,
     min: 0,
-    default: 0,
+  },
+  date: {
+    type: Date,
+    required: true,
   },
 }, { timestamps: true });
 
-export default mongoose.model("Product", productSchema);
+export default mongoose.model("Debt", debtSchema);

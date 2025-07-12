@@ -25,11 +25,12 @@ export const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerTypes | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [confirmPayedId, setConfirmPayedId] = useState<string | null>(null);
-  const [filterDate, setFilterDate] = useState("");
 const [editMode, setEditMode] = useState(false);
 const [search, setSearch] = useState("");
 const [openAllProductsModal, setOpenAllProductsModal] = useState(false);
-
+const [days, setDays] = useState(1);
+const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
 
 const [editData, setEditData] = useState({
   name: "",
@@ -61,7 +62,8 @@ const saveEditedCustomer = async () => {
 
   const handleTogglePayed = async (id: string) => {
     try {
-      await Fetch.patch(`/customer/payed/${id}`);
+      await Fetch.patch(`/customer/payed/${id}`, { days });
+      setDays(1); 
       toast.success("Xaridor to'lagan deb belgilandi");
       mutate();
     } catch (err) {
@@ -81,24 +83,34 @@ const saveEditedCustomer = async () => {
     }
   };
 
-  const filteredCustomers = customers?.reverse().filter((c: CustomerTypes) => {
+const filteredCustomers = customers?.filter((c: CustomerTypes) => {
   const matchesPayed = c.payed === payed;
-  const matchesDate = filterDate ? c.date.startsWith(filterDate) : true;
+
+  const matchesDateRange =
+    startDate && endDate
+      ? new Date(c.date) >= new Date(startDate) && new Date(c.date) <= new Date(endDate)
+      : true;
+
   const matchesSearch = search
     ? c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.phone.includes(search)
     : true;
 
-  return matchesPayed && matchesDate && matchesSearch;
+  return matchesPayed && matchesDateRange && matchesSearch;
 });
-const totalAmount = filteredCustomers?.reduce((acc:number, customer:CustomerTypes) => {
-  const customerTotal = customer.buyedProducts?.reduce(
-    (sum, product) => sum + product.price * product.quantity,
-    0
-  ) || 0;
+
+const totalAmount = filteredCustomers?.reduce((acc: number, customer: CustomerTypes) => {
+  const customerTotal = typeof customer.all === "number" && customer.all > 0
+    ? customer.all
+    : customer.buyedProducts?.reduce(
+        (sum, product) => sum + product.price * product.quantity,
+        0
+      ) || 0;
+
   return acc + customerTotal;
 }, 0) || 0;
 const groupedProductsMap = new Map();
+
 
 const allProducts = filteredCustomers?.flatMap((customer: CustomerTypes) =>
   customer.buyedProducts?.map((product: BuyedProductTypes) => ({
@@ -160,10 +172,17 @@ const groupedProducts = Array.from(groupedProductsMap.values());
         </Button>
       <Input
         type="date"
-        value={filterDate}
-        onChange={(e) => setFilterDate(e.target.value)}
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
         className="w-[200px] bg-primary text-white custom-date"
       />
+      <Input
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        className="w-[200px] bg-primary text-white custom-date"
+      />
+
           <Input
         type="text"
         placeholder="Ism yoki telefon orqali qidirish"
@@ -197,7 +216,7 @@ const groupedProducts = Array.from(groupedProductsMap.values());
               {filteredCustomers.map((c: CustomerTypes, idx: number) => (
                 <tr key={c._id} className="border border-gray-600 bg-primary-foreground text-primary">
                   <td className="p-2">{idx + 1}</td>
-                  <td className="p-2">{c.name}</td>
+                  <td className="p-2">{c.name} ({c.all.toLocaleString()} so'm)</td>
                   <td className="p-2">{c.phone}</td>
                   <td className="p-2">{c.location}</td>
                   <td className="p-2">{c.date}</td>
@@ -308,16 +327,17 @@ const groupedProducts = Array.from(groupedProductsMap.values());
       </Modal>          
 
 
-      <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash">
-        <p>Ushbu mijoz to'lagan deb belgilansinmi?</p>
+      <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash" >
+        <p>Necha kun ishlatganini belgilang</p>
+          <Input value={days} onChange={(e) => setDays(Number(e.target.value))} type="number" min={1} className="my-2" />
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="destructive" onClick={() => setConfirmPayedId(null)}>Yo‘q</Button>
           <Button onClick={() => confirmPayedId && handleTogglePayed(confirmPayedId)}>Ha, belgilash</Button>
         </div>
       </Modal>
 
-    <Modal open={openAllProductsModal} onClose={() => setOpenAllProductsModal(false)} title="Umumiy mahsulotlar" className="max-w-4xl">
-  <div className="max-h-[400px] overflow-y-auto">
+    <Modal open={openAllProductsModal} onClose={() => setOpenAllProductsModal(false)} title="Umumiy mahsulotlar" big={true}>
+  <div className="max-h-[400px] overflow-y-auto max-w-3xl">
     {groupedProducts.length === 0 ? (
       <p className="text-muted">Mahsulotlar mavjud emas</p>
     ) : (
@@ -325,19 +345,15 @@ const groupedProducts = Array.from(groupedProductsMap.values());
         <thead className="bg-[#111]">
           <tr>
             <th className="p-4 border">Mahsulot</th>
-            <th className="p-4 border">Turi</th>
-            <th className="p-4 border">O‘lchami</th>
             <th className="p-4 border">Narxi</th>
             <th className="p-4 border">Soni</th>
             <th className="p-4 border">Jami</th>
           </tr>
         </thead>
-        <tbody className="bg-white text-black">
+        <tbody className="bg-white text-black font-semibold">
           {groupedProducts.map((p, i) => (
             <tr key={i} className="border border-gray-600">
-              <td className="p-4">{p.product}</td>
-              <td className="p-4">{p.type}</td>
-              <td className="p-4">{p.size}</td>
+              <td className="p-4">{p.product}({p.size})</td>
               <td className="p-4">{p.price.toLocaleString()} so'm</td>
               <td className="p-4">{p.quantity}</td>
               <td className="p-4">{p.totalPrice.toLocaleString()} so'm</td>

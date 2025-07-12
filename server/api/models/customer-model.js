@@ -17,7 +17,12 @@ const customerSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    all:{
+        type: Number,
+        default: 0,
+    },
     buyedProducts: [{
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
         product: { type:String},
         size: { type: String },
         price: { type: Number, min: 0 },

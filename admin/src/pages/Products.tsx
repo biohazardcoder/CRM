@@ -37,6 +37,7 @@ export default function Products() {
     size: "",
     price: 0,
     type: "",
+    stock: 0,
   });
 const filteredProducts = products?.filter((product: ProductTypes) =>
   product.name.toLowerCase().includes(search.toLowerCase())
@@ -63,6 +64,7 @@ const filteredProducts = products?.filter((product: ProductTypes) =>
       size: product.size,
       price: product.price,
       type: product.type,
+      stock: product.stock,
     });
     setEditOpen(true);
   };
@@ -123,6 +125,7 @@ const filteredProducts = products?.filter((product: ProductTypes) =>
             <TableHeader className="bg-zinc-800 text-white hover:bg-zinc-700">
               <TableRow>
                 <TableHead>Nomi</TableHead>
+                <TableHead>Soni</TableHead>
                 <TableHead>O‘lcham</TableHead>
                 <TableHead>Narx</TableHead>
                 <TableHead>Tur</TableHead>
@@ -135,6 +138,7 @@ const filteredProducts = products?.filter((product: ProductTypes) =>
               {filteredProducts?.map((product: ProductTypes, index: number) => (
               <TableRow key={index} className="hover:bg-sky-200 transition-colors">
                 <TableCell className="font-semibold text-xl">{product.name}</TableCell>
+                <TableCell className="text-lg">{product.stock}</TableCell>
                 <TableCell className="text-lg">{product.size}</TableCell>
                 <TableCell className="text-lg">{product.price} so'm</TableCell>
                 <TableCell className="text-lg">{product.type}</TableCell>
@@ -170,12 +174,13 @@ const filteredProducts = products?.filter((product: ProductTypes) =>
 
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Mahsulotni tahrirlash">
         <div className="flex flex-col gap-4">
-          {["name", "size", "price", "type"].map((field) => (
+          {["name", "size", "price", "type", "stock"].map((field) => (
             <div key={field} className="space-y-1">
               <Label htmlFor={field}>
                 {{
                   name: "Mahsulot nomi *",
                   size: "O‘lcham *",
+                  stock: "Soni *",
                   price: "Narx *",
                   type: "Tur *",
                 }[field]}

@@ -25,6 +25,7 @@ export function AddCustomer() {
     location: "",
     payed: false,
     date: "",
+    days: 1, 
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedProducts, setSelectedProducts] = useState<{ [id: string]: number }>({});
@@ -41,7 +42,7 @@ export function AddCustomer() {
   );
 
   const resetForm = () => {
-    setFormData({ name: "", phone: "", location: "", payed: false, date: "" });
+    setFormData({ name: "", phone: "", location: "", payed: false, date: "", days: 1 });
     setSelectedProducts({});
     setErrors({});
     setStep("select-products");
@@ -63,6 +64,7 @@ export function AddCustomer() {
     const buyedProducts = products
       ?.filter((product) => selectedProducts[product._id])
       .map((product) => ({
+        productId: product._id,
         product: product.name,
         size: product.size,
         price: product.price,
@@ -126,7 +128,7 @@ export function AddCustomer() {
                   className="bg-[#1c1c1c] text-white"
                 />
               </div>
-<SheetFooter>
+        <SheetFooter>
           {step === "select-products" ? (
             <Button onClick={() => setStep("enter-details")} disabled={totalCount === 0}>
               Davom etish
@@ -147,7 +149,7 @@ export function AddCustomer() {
                   <div key={product._id} className="flex items-center justify-between bg-[#1c1c1c] p-2 rounded">
                     <div>
                       <p className="text-white font-medium">{product.name}({product.size})</p>
-                      <p className="text-sm text-gray-400">{product.type} / {product.price.toLocaleString()} so'm</p>
+                      <p className="text-sm text-gray-400">{product.stock} {product.type} / {product.price.toLocaleString()} so'm</p>
                     </div>
                     <Input
                       type="number"
@@ -216,12 +218,24 @@ export function AddCustomer() {
                   />
                   To‘lagan
                 </Label>
+                {formData.payed && (
+                  <div className="flex items-center space-x-2">
+                    <Input
+                    type="number" 
+                    min={1}
+                    value={formData.days}
+                    onChange={(e) => setFormData({ ...formData, days: parseInt(e.target.value) || 1 })}
+                    className="w-20 bg-[#2c2c2c] text-white"
+                    placeholder="Kunlar"
+                  />
+                  <h1>Kun</h1>
+                  </div>
+                )  
+                  }
               </div>
-
               <div className="mt-4 border-t pt-4 text-sm text-gray-300 space-y-2">
                 <p>📦 Umumiy mahsulotlar miqdori: <span className="text-white">{totalCount}</span></p>
                 <p>💰 Umumiy summa: <span className="text-white">{totalAmount.toLocaleString()} so'm</span></p>
-         
             <Button
               type="button"
               variant="secondary"

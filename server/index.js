@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import productRoutes from './api/routes/product-route.js';
 import customerRoutes from './api/routes/customer-route.js';
 import adminRoutes from './api/routes/admin-route.js';
+import expenseRoutes from './api/routes/expense-route.js';
 dotenv.config();
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(cors());
 app.use("/api/product", productRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/expense", expenseRoutes);
 app.get('/', (_, res) => {
   res.send('Hello, World!'); 
 });

@@ -22,10 +22,9 @@ export const getProductById = async (req, res) => {
 }
 export const createProduct = async (req, res) => {
   try {
-    console.log(req.body);
-    const { name, size, price, type } = req.body;
-    
-    const newProduct = new Product({ name, size, price, type });
+    const { name, size, price, type, stock } = req.body;
+
+    const newProduct = new Product({ name, size, price, type, stock });
     await newProduct.save();
     res.status(201).json(newProduct);
   } catch (error) {
@@ -35,10 +34,10 @@ export const createProduct = async (req, res) => {
 }
 export const updateProduct = async (req, res) => {
   try {
-    const { name, size, price, type } = req.body;
+    const { name, size, price, type, stock } = req.body;
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      { name, size, price, type },
+      { name, size, price, type, stock   },
       { new: true }
     );
     if (!updatedProduct) {

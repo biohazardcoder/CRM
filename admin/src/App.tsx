@@ -11,6 +11,7 @@ import { Fetch } from "./middlewares/Fetch";
 import Admins from "./pages/Admins";
 import Products from "./pages/Products";
 import { Customers } from "./pages/Customers";
+import Expenses from "./pages/Expenses";
 
 
 function App() {
@@ -55,6 +56,10 @@ function App() {
               path: "/",
               element: <Products />,
               index: true,
+            },
+            {
+              path: "/expenses",
+              element: <Expenses />,
             },
             {
               path: "/admins",

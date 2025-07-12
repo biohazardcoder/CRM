@@ -23,13 +23,14 @@ export function AddProduct() {
     size: "",
     price: "",
     type: "",
+    stock: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { mutate } = useSWR("/product", fetcher)
   const resetForm = () => {
-    setFormData({ name: "", size: "", price: "", type: "" });
+    setFormData({ name: "", size: "", price: "", type: "", stock: 0 });
     setErrors({});
   };
 
@@ -39,7 +40,8 @@ export function AddProduct() {
     if (!formData.size.trim()) newErrors.size = "O'lcham majburiy.";
     if (!formData.price.trim()) newErrors.price = "Narx majburiy va musbat bo'lishi kerak.";
     if (!formData.type.trim()) newErrors.type = "Tur majburiy.";
-   
+    if (formData.stock <= 0) newErrors.stock = "Soni majburiy va musbat bo'lishi kerak.";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -91,7 +93,7 @@ export function AddProduct() {
         <SheetDescription>Barcha maydonlarni to‘ldiring</SheetDescription>
 
         <div className="flex flex-col gap-4 py-4">
-          {["name", "size", "price", "type"].map((field) => (
+          {["name", "size", "price", "type", "stock"].map((field) => (
   <div className="space-y-1" key={field}>
     <Label htmlFor={field}>
       {{
@@ -99,6 +101,7 @@ export function AddProduct() {
         size: "O'lcham *",
         price: "Narx *",
         type: "Tur *",
+        stock: "Soni *",
       }[field]}
     </Label>
 

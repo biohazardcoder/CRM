@@ -12,6 +12,7 @@ export interface AdminTypes {
 
 export interface CustomerTypes {
   _id: string;
+  all: number;
   createdAt: string;
   name:string
 phone: string;
@@ -33,6 +34,7 @@ export interface BuyedProductTypes {
   }
 export interface ProductTypes {
   _id: string
+  stock: number
   createdAt: string
   updatedAt: string
   name: string
@@ -41,4 +43,9 @@ export interface ProductTypes {
   type: string
 }
 
-
+export interface ExpenseTypes{
+  _id:string
+  name:string
+  amount:number
+  date:string
+}
