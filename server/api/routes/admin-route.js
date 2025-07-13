@@ -15,8 +15,8 @@ const router = express.Router();
 router.get("/me", isExisted, GetMe);
 router.get("/", isExisted, getAllAdmins);
 router.get("/:id", isExisted, getAdmin);
-router.post("/register", isExisted, register);
-router.post("/login", isExisted, login);
+router.post("/register", register);
+router.post("/login", login);
 router.put("/:id", isExisted, updateAdmin);
 router.delete("/:id", isExisted, deleteAdmin);
 
