@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,7 @@ export function AddCustomer() {
     phone: "",
     location: "",
     date: "",
-    days: 1, 
+    days: 1,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedProducts, setSelectedProducts] = useState<{ [id: string]: number }>({});
@@ -32,8 +32,9 @@ export function AddCustomer() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [mode, setMode] = useState<"select-first" | "info-first">("select-first");
 
-  const { data: products,mutate } = useSWR<ProductTypes[]>("/product", fetcher);
+  const { data: products, mutate } = useSWR<ProductTypes[]>("/product", fetcher);
   const CustomerData = useSWR("/customer", fetcher);
 
   const filteredProducts = products?.filter((product) =>
@@ -41,17 +42,22 @@ export function AddCustomer() {
   );
 
   const resetForm = () => {
-    setFormData({ name: "", phone: "", location: "",  date: "", days: 1 });
+    setFormData({ name: "", phone: "", location: "", date: "", days: 1 });
     setSelectedProducts({});
     setErrors({});
-    setStep("select-products");
   };
+
+  // 🔁 mode o'zgarsa step ham mos ravishda o'zgaradi
+  useEffect(() => {
+    setStep(mode === "select-first" ? "select-products" : "enter-details");
+  }, [mode]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Ism majburiy.";
     if (!formData.phone.trim()) newErrors.phone = "Telefon raqami majburiy.";
     if (!formData.location.trim()) newErrors.location = "Manzil majburiy.";
+    if (!formData.date.trim()) newErrors.date = "Sana majburiy.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -78,7 +84,7 @@ export function AddCustomer() {
         buyedProducts,
       });
       await mutate();
-      await CustomerData.mutate()
+      await CustomerData.mutate();
       toast.success("Mijoz muvaffaqiyatli qo‘shildi!");
       setIsSheetOpen(false);
       resetForm();
@@ -113,43 +119,56 @@ export function AddCustomer() {
         <SheetHeader>
           <SheetTitle className="text-white text-2xl">Yangi Xaridor</SheetTitle>
         </SheetHeader>
+
         <SheetDescription>
-          {step === "select-products" ? "Mahsulotlardan tanlang va miqdorini kiriting" : "Mijoz ma'lumotlarini kiriting"}
+          {step === "select-products"
+            ? "Mahsulotlardan tanlang va miqdorini kiriting"
+            : "Mijoz ma'lumotlarini kiriting"}
         </SheetDescription>
+
+        <div className="flex justify-between items-center mt-3">
+          <span></span>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={mode === "select-first" ? "default" : "secondary"}
+              onClick={() => setMode("select-first")}
+            >
+              Mahsulotlar
+            </Button>
+            <Button
+              size="sm"
+              variant={mode === "info-first" ? "default" : "secondary"}
+              onClick={() => setMode("info-first")}
+            >
+              Ma'lumotlar
+            </Button>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-4 py-4">
           {step === "select-products" && (
             <>
-              <div className="mb-2">
-                <Input
-                  placeholder="Mahsulot nomi bo‘yicha qidiring..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-[#1c1c1c] text-white"
-                />
-              </div>
-        <SheetFooter>
-          {step === "select-products" ? (
-            <Button onClick={() => setStep("enter-details")} disabled={totalCount === 0}>
-              Davom etish
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleSubmit}
-              disabled={isLoading}
-            >
-              {isLoading ? "Yaratilmoqda..." : "Yaratish"}
-            </Button>
-          )}
-        </SheetFooter>
+              <Input
+                placeholder="Mahsulot nomi bo‘yicha qidiring..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#1c1c1c] text-white"
+              />
+
               {filteredProducts?.length ? (
                 filteredProducts.map((product) => (
-                  <div key={product._id} className="flex items-center justify-between bg-[#1c1c1c] p-2 rounded">
+                  <div
+                    key={product._id}
+                    className="flex items-center justify-between bg-[#1c1c1c] p-2 rounded"
+                  >
                     <div>
-                      <p className="text-white font-medium">{product.name}({product.size})</p>
-                      <p className="text-sm text-gray-400">{product.stock} {product.type} / {product.price.toLocaleString()} so'm</p>
+                      <p className="text-white font-medium">
+                        {product.name} ({product.size})
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {product.stock} {product.type} / {product.price.toLocaleString()} so'm
+                      </p>
                     </div>
                     <Input
                       type="number"
@@ -185,7 +204,9 @@ export function AddCustomer() {
                   <Input
                     id={field}
                     value={(formData as any)[field]}
-                    onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [field]: e.target.value })
+                    }
                     className={errors[field] ? "border-red-500" : ""}
                   />
                   {errors[field] && (
@@ -193,24 +214,40 @@ export function AddCustomer() {
                   )}
                 </div>
               ))}
-                <div >
-                  <Label htmlFor="date" className="text-sm text-gray-300">
-                    Sana *
-                  </Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className={cn(errors.date ? "border-red-500" : "", "custom-date")}
-                  />
-                  {errors.date && (
-                    <span className="text-red-500 text-sm">{errors.date}</span>
-                  )}
-                </div>
+
+              <div>
+                <Label htmlFor="date" className="text-sm text-gray-300">
+                  Sana *
+                </Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  className={cn(errors.date ? "border-red-500" : "", "custom-date")}
+                />
+                {errors.date && (
+                  <span className="text-red-500 text-sm">{errors.date}</span>
+                )}
+              </div>
+
               <div className="mt-4 border-t pt-4 text-sm text-gray-300 space-y-2">
                 <p>📦 Umumiy mahsulotlar miqdori: <span className="text-white">{totalCount}</span></p>
                 <p>💰 Umumiy summa: <span className="text-white">{totalAmount.toLocaleString()} so'm</span></p>
+              </div>
+            </>
+          )}
+        </div>
+
+        <SheetFooter>
+          {step === "select-products" ? (
+            <Button
+              onClick={() => setStep("enter-details")}
+              disabled={totalCount === 0}
+            >
+              Davom etish
+            </Button>
+          ) : (
             <Button
               type="button"
               variant="secondary"
@@ -219,12 +256,8 @@ export function AddCustomer() {
             >
               {isLoading ? "Yaratilmoqda..." : "Yaratish"}
             </Button>
-              </div>
-            </>
           )}
-        </div>
-
-        
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

@@ -26,6 +26,7 @@ export const Customers = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [confirmPayedId, setConfirmPayedId] = useState<string | null>(null);
 const [editMode, setEditMode] = useState(false);
+const [editModeProduct, setEditModeProduct] = useState(false);
 const [search, setSearch] = useState("");
 const [openAllProductsModal, setOpenAllProductsModal] = useState(false);
 const [days, setDays] = useState(1);
@@ -36,12 +37,14 @@ const [editData, setEditData] = useState({
   name: "",
   phone: "",
   location: "",
+  date:""
 });
 const handleEditCustomer = (customer: CustomerTypes) => {
   setEditData({
     name: customer.name,
     phone: customer.phone,
     location: customer.location,
+    date:customer.date
   });
   setSelectedCustomer(customer);
   setEditMode(true);
@@ -52,8 +55,9 @@ const saveEditedCustomer = async () => {
 
   try {
     await Fetch.put(`/customer/${selectedCustomer._id}`, editData);
+        toast.success("Xaridorni muvaffaqiyali yangilandi");
     mutate();
-    window.location.reload();
+    setEditMode(false)
   } catch (error) {
     toast.error("Xaridorni yangilashda xatolik yuz berdi");
     console.error(error);
@@ -216,7 +220,16 @@ const groupedProducts = Array.from(groupedProductsMap.values());
               {filteredCustomers.map((c: CustomerTypes, idx: number) => (
                 <tr key={c._id} className="border border-gray-600 bg-primary-foreground text-primary">
                   <td className="p-2">{idx + 1}</td>
-                  <td className="p-2">{c.name} ({c.all.toLocaleString()} so'm)</td>
+              <td className="p-2">
+                  {c.name}{" "}
+                  {payed ? (
+                    `(${c.all.toLocaleString()} so'm)`
+                  ) : (
+                    `(${c?.buyedProducts
+                      ?.reduce((acc, p) => acc + p.price * p.quantity, 0)
+                      .toLocaleString()} so'm)`
+                  )}
+                </td>
                   <td className="p-2">{c.phone}</td>
                   <td className="p-2">{c.location}</td>
                   <td className="p-2">{c.date}</td>
@@ -296,37 +309,110 @@ const groupedProducts = Array.from(groupedProductsMap.values());
             <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} placeholder="Ism" />
             <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} placeholder="Telefon" />
             <Input value={editData.location} onChange={(e) => setEditData({ ...editData, location: e.target.value })} placeholder="Manzil" />
+            <Input value={editData.date} onChange={(e) => setEditData({ ...editData, date: e.target.value })} placeholder="Kun" type="date" className="custom-date" />
             <Button className="w-full" onClick={saveEditedCustomer}>Saqlash</Button>
           </div>
       </Modal>
  
 
 
-      <Modal open={openDialog} onClose={() => setOpenDialog(false)} title="Mahsulotlar ro'yxati">
-        <div className="space-y-3 max-h-[300px] overflow-y-auto">
-          {selectedCustomer?.buyedProducts?.map((product, idx) => (
-            <div key={idx} className="border-b pb-2">
-              <p className="flex justify-between">
-                <b>{product.product}</b> ({product.size}) — {product.price.toLocaleString()} so'm
-              </p>
-              <p>
-                {product.quantity} {product.type} = {(product.quantity * product.price).toLocaleString()} so'm
-              </p>
+<Modal open={openDialog} onClose={() => setOpenDialog(false)} title="Mahsulotlar ro'yxati">
+  <div className="space-y-3 max-h-[400px] overflow-y-auto">
+    <div className="flex justify-between text-primary items-center">
+      <Button size="sm" variant="secondary" onClick={() => setEditModeProduct(prev => !prev)}>
+        {editModeProduct ? "Yopish" : "Tahrirlash"}
+      </Button>
+        {editModeProduct && <div className="ml-2">
+      <Button
+        className="w-full"
+        onClick={async () => {
+          try {
+            await Fetch.put(`/customer/${selectedCustomer?._id}`, {
+              ...selectedCustomer,
+              name: selectedCustomer?.name || "",
+              phone: selectedCustomer?.phone || "",
+              location: selectedCustomer?.location || "",
+              date: selectedCustomer?.date || "",
+              buyedProducts: selectedCustomer?.buyedProducts,
+            });
+            toast.success("Mahsulotlar yangilandi");
+            mutate();
+            setEditModeProduct(false)
+            setOpenDialog(false);
+          } catch (err) {
+            toast.error("Xatolik yuz berdi");
+            console.error(err);
+          }
+        }}
+      >
+        Saqlash
+      </Button>
+    </div>}
+    </div>
+
+    {selectedCustomer?.buyedProducts?.map((product, idx) => (
+      <div key={idx} className="border-b pb-2 space-y-2">
+        <div className="flex justify-between items-center gap-2">
+          <div className="w-full">
+            <div className="flex items-center justify-between"> 
+              <div>
+                <p className="font-semibold">
+                  {product.product} ({product.size})
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {product.type} x {product.price.toLocaleString()} so'm
+                </p>
+              </div>
+              {editModeProduct && (
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    type="number"
+                    value={product.quantity}
+                    min={1}
+                    className="w-24"
+                    onChange={(e) => {
+                      const updated = selectedCustomer.buyedProducts.map((p, i) =>
+                        i === idx ? { ...p, quantity: Number(e.target.value) } : p
+                      );
+                      setSelectedCustomer(prev => ({
+                        ...(prev as CustomerTypes),
+                        buyedProducts: updated,
+                      }));
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      const filtered = selectedCustomer.buyedProducts.filter((_, i) => i !== idx);
+                      setSelectedCustomer(prev => ({
+                        ...(prev as CustomerTypes),
+                        buyedProducts: filtered,
+                      }));
+                    }}
+                  >
+                    O'chirish
+                  </Button>
+                </div>
+              )}
             </div>
-          ))}
-          {selectedCustomer?.buyedProducts && (
-            <div className="pt-4 text-right font-bold">
-              Umumiy:{" "}
-              {selectedCustomer.buyedProducts
-                .reduce((acc, p) => acc + p.price * p.quantity, 0)
-                .toLocaleString()}{" "}
-              so'm
-            </div>
-          )}
+            <p className="text-sm font-bold mt-1 text-end">
+              Jami: {(product.quantity * product.price).toLocaleString()} so'm
+            </p>
+          </div>
         </div>
-      </Modal>          
+      </div>
+    ))}
 
+    <div className="pt-4 text-right font-bold">
+      Umumiy: {selectedCustomer?.buyedProducts
+        ?.reduce((acc, p) => acc + p.price * p.quantity, 0)
+        .toLocaleString()} so'm
+    </div>
 
+    
+  </div>
+</Modal>
       <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash" >
         <p>Necha kun ishlatganini belgilang</p>
           <Input value={days} onChange={(e) => setDays(Number(e.target.value))} type="number" min={1} className="my-2" />

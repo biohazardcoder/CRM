@@ -24,6 +24,7 @@ buyedProducts: BuyedProductTypes[];
 }
 
 export interface BuyedProductTypes {
+  productId:string
     _id: string;
     product: string;
     size: string;

@@ -39,8 +39,8 @@ export function AddExpense() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Xarajat nomi majburiy.";
-    if (!formData.amount.trim()) newErrors.amount = "Xarajat qiymati majburiy.";
+    if (!formData.name.trim()) newErrors.name = "Qarzdor ismi majburiy.";
+    if (!formData.amount.trim()) newErrors.amount = "Qarz qiymati majburiy.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -58,12 +58,12 @@ export function AddExpense() {
   },
 });
       await mutate()
-      toast.success("Xarajat muvaffaqiyatli qo‘shildi!");
+      toast.success("Qarzdor muvaffaqiyatli qo‘shildi!");
 
       resetForm();
       setIsSheetOpen(false);
     } catch (error) {
-      toast.error("Xarajat qo‘shishda xatolik yuz berdi.");
+      toast.error("Qarzdor qo‘shishda xatolik yuz berdi.");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -80,11 +80,11 @@ export function AddExpense() {
       }}
     >
       <SheetTrigger asChild>
-        <Button variant="default" className="bg-sky-600">Xarajat qo‘shish</Button>
+        <Button variant="default" className="bg-sky-600">Qarzdor qo‘shish</Button>
       </SheetTrigger>
       <SheetContent className="h-full w-full sm:max-w-md sm:h-auto bg-[#202020] text-white border-none">
         <SheetHeader>
-          <SheetTitle className="text-white text-2xl">Yangi Xarajat</SheetTitle>
+          <SheetTitle className="text-white text-2xl">Yangi Qarzdor</SheetTitle>
         </SheetHeader>
         <SheetDescription>Barcha maydonlarni to‘ldiring</SheetDescription>
 
@@ -93,7 +93,7 @@ export function AddExpense() {
     <div className="space-y-1" key={field}>
       <Label htmlFor={field}>
         {{
-          name: "Xarajat nomi *",
+          name: "Qarzdor ismi *",
           amount: "Qiymati",
           date: "Sana",
         }[field]}

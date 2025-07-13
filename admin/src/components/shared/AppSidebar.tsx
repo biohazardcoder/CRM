@@ -39,7 +39,7 @@ export function AppSidebar() {
       icon: Users,
     },
     {
-      title: "Xarajatlar",
+      title: "Qarzlar",
       url: "/expenses",
       icon: Wallet2,
     },
