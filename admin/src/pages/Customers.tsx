@@ -29,7 +29,7 @@ const [editMode, setEditMode] = useState(false);
 const [editModeProduct, setEditModeProduct] = useState(false);
 const [search, setSearch] = useState("");
 const [openAllProductsModal, setOpenAllProductsModal] = useState(false);
-const [days, setDays] = useState(1);
+const [days, setDays] = useState("1");
 const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
 
@@ -53,39 +53,62 @@ const handleEditCustomer = (customer: CustomerTypes) => {
 const saveEditedCustomer = async () => {
   if (!selectedCustomer?._id) return;
 
+  const promise = Fetch.put(`/customer/${selectedCustomer._id}`, editData);
+
+  toast.promise(promise, {
+    loading: "Xaridor yangilanmoqda...",
+    success: "Xaridor muvaffaqiyatli yangilandi",
+    error: "Xaridorni yangilashda xatolik yuz berdi",
+  });
+
   try {
-    await Fetch.put(`/customer/${selectedCustomer._id}`, editData);
-        toast.success("Xaridorni muvaffaqiyali yangilandi");
+    await promise;
     mutate();
-    setEditMode(false)
+    setEditMode(false);
   } catch (error) {
-    toast.error("Xaridorni yangilashda xatolik yuz berdi");
     console.error(error);
   }
 };
 
-  const handleTogglePayed = async (id: string) => {
-    try {
-      await Fetch.patch(`/customer/payed/${id}`, { days });
-      setDays(1); 
-      toast.success("Xaridor to'lagan deb belgilandi");
-      mutate();
-    } catch (err) {
-      console.error("Toggle payed error:", err);
-    } finally {
-      setConfirmPayedId(null);
-    }
-  };
 
-  const handleDeleteCustomer = async (id: string) => {
-    try {
-      await Fetch.delete(`/customer/${id}`);
-      toast.success("Xaridor muvaffaqiyatli o'chirildi");
-      mutate();
-    } catch (err) {
-      console.error("Delete customer error:", err);
-    }
-  };
+const handleTogglePayed = async (id: string) => {
+  const promise = Fetch.patch(`/customer/payed/${id}`, { days });
+
+  toast.promise(promise, {
+    loading: "To'langan deb belgilanyapti...",
+    success: "Xaridor to'lagan deb belgilandi",
+    error: "Belgilashda xatolik yuz berdi",
+  });
+
+  try {
+    await promise;
+    setDays("");
+    mutate();
+  } catch (err) {
+    console.error("Toggle payed error:", err);
+  } finally {
+    setConfirmPayedId(null);
+  }
+};
+
+
+const handleDeleteCustomer = async (id: string) => {
+  const promise = Fetch.delete(`/customer/${id}`);
+
+  toast.promise(promise, {
+    loading: "Xaridor o'chirilmoqda...",
+    success: "Xaridor muvaffaqiyatli o'chirildi",
+    error: "Xaridorni o'chirishda xatolik",
+  });
+
+  try {
+    await promise;
+    mutate();
+  } catch (err) {
+    console.error("Delete customer error:", err);
+  }
+};
+
 
 const filteredCustomers = customers?.filter((c: CustomerTypes) => {
   const matchesPayed = c.payed === payed;
@@ -139,8 +162,6 @@ allProducts.forEach((product: BuyedProductTypes) => {
 });
 
 const groupedProducts = Array.from(groupedProductsMap.values());
-
-
 
   if (isLoading) {
     return (
@@ -209,6 +230,7 @@ const groupedProducts = Array.from(groupedProductsMap.values());
               <tr>
                 <th className="p-2 border">#</th>
                 <th className="p-2 border">Ism</th>
+                <th className="p-2 border">{payed ? "Umumiy to'lov" : "Kunlik to'lov"}</th>
                 <th className="p-2 border">Telefon</th>
                 <th className="p-2 border">Manzil</th>
                 <th className="p-2 border">Sana</th>
@@ -222,14 +244,14 @@ const groupedProducts = Array.from(groupedProductsMap.values());
                   <td className="p-2">{idx + 1}</td>
               <td className="p-2">
                   {c.name}{" "}
-                  {payed ? (
-                    `(${c.all.toLocaleString()} so'm)`
-                  ) : (
-                    `(${c?.buyedProducts
-                      ?.reduce((acc, p) => acc + p.price * p.quantity, 0)
-                      .toLocaleString()} so'm)`
-                  )}
                 </td>
+                  <td className="p-2">{payed ? (
+                    `${c.all.toLocaleString()} so'm`
+                  ) : (
+                    `${c?.buyedProducts
+                      ?.reduce((acc, p) => acc + p.price * p.quantity, 0)
+                      .toLocaleString()} so'm`
+                  )}</td>
                   <td className="p-2">{c.phone}</td>
                   <td className="p-2">{c.location}</td>
                   <td className="p-2">{c.date}</td>
@@ -246,7 +268,10 @@ const groupedProducts = Array.from(groupedProductsMap.values());
                         size="sm"
                         variant="default"
                         className="bg-green-500 hover:bg-green-600"
-                        onClick={() => setConfirmPayedId(c._id)}
+                        onClick={() => {
+                        setConfirmPayedId(c._id),
+                        setSelectedCustomer(c)
+                      }}
                       >
                         <Check size={16} />
                       </Button>
@@ -294,7 +319,7 @@ const groupedProducts = Array.from(groupedProductsMap.values());
               <tr className="bg-[#111] text-white">
                 <td colSpan={5} className="text-right p-4">Umumiy summa:</td>
                 <td className="font-semibold">{totalAmount.toLocaleString()} so'm</td>
-                <td>
+                <td colSpan={2}>
                   <Button size="sm" variant="secondary" onClick={() => setOpenAllProductsModal(true)}>
                     Tafsilotlar
                   </Button>
@@ -324,29 +349,36 @@ const groupedProducts = Array.from(groupedProductsMap.values());
       </Button>
         {editModeProduct && <div className="ml-2">
       <Button
-        className="w-full"
-        onClick={async () => {
-          try {
-            await Fetch.put(`/customer/${selectedCustomer?._id}`, {
-              ...selectedCustomer,
-              name: selectedCustomer?.name || "",
-              phone: selectedCustomer?.phone || "",
-              location: selectedCustomer?.location || "",
-              date: selectedCustomer?.date || "",
-              buyedProducts: selectedCustomer?.buyedProducts,
-            });
-            toast.success("Mahsulotlar yangilandi");
-            mutate();
-            setEditModeProduct(false)
-            setOpenDialog(false);
-          } catch (err) {
-            toast.error("Xatolik yuz berdi");
-            console.error(err);
-          }
-        }}
-      >
-        Saqlash
-      </Button>
+  className="w-full"
+  onClick={async () => {
+    const promise = Fetch.put(`/customer/${selectedCustomer?._id}`, {
+      ...selectedCustomer,
+      name: selectedCustomer?.name || "",
+      phone: selectedCustomer?.phone || "",
+      location: selectedCustomer?.location || "",
+      date: selectedCustomer?.date || "",
+      buyedProducts: selectedCustomer?.buyedProducts,
+    });
+
+    toast.promise(promise, {
+      loading: "Saqlanmoqda...",
+      success: "Mahsulotlar muvaffaqiyatli yangilandi",
+      error: "Xatolik yuz berdi",
+    });
+
+    try {
+      await promise;
+      mutate();
+      setEditModeProduct(false);
+      setOpenDialog(false);
+    } catch (err) {
+      console.error(err);
+    }
+  }}
+>
+  Saqlash
+</Button>
+
     </div>}
     </div>
 
@@ -359,8 +391,8 @@ const groupedProducts = Array.from(groupedProductsMap.values());
                 <p className="font-semibold">
                   {product.product} ({product.size})
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {product.type} x {product.price.toLocaleString()} so'm
+                <p className="text-sm ">
+                  {product.quantity} {product.type} x {product.price.toLocaleString()} so'm
                 </p>
               </div>
               {editModeProduct && (
@@ -413,14 +445,34 @@ const groupedProducts = Array.from(groupedProductsMap.values());
     
   </div>
 </Modal>
-      <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash" >
-        <p>Necha kun ishlatganini belgilang</p>
-          <Input value={days} onChange={(e) => setDays(Number(e.target.value))} type="number" min={1} className="my-2" />
+    <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash" >
+       <p>Necha kun ishlatganini belgilang</p>
+<Input
+  value={days}
+  onChange={(e) => setDays(e.target.value)}
+  type="number"
+  min={1}
+  className="my-2"
+/>
+<h1>
+  {days} kunda = {" "}
+  {days ? (
+    selectedCustomer?.buyedProducts
+      ? (
+          selectedCustomer.buyedProducts.reduce(
+            (acc, p) => acc + (p.price ?? 0) * (p.quantity ?? 0),
+            0
+          ) * Number(days)
+        ).toLocaleString()
+      : '0'
+  ) : '0'} so'm
+</h1>
+
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="destructive" onClick={() => setConfirmPayedId(null)}>Yo‘q</Button>
           <Button onClick={() => confirmPayedId && handleTogglePayed(confirmPayedId)}>Ha, belgilash</Button>
         </div>
-      </Modal>
+    </Modal>
 
     <Modal open={openAllProductsModal} onClose={() => setOpenAllProductsModal(false)} title="Umumiy mahsulotlar" big={true}>
   <div className="max-h-[400px] overflow-y-auto max-w-3xl">
