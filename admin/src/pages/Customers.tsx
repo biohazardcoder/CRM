@@ -53,7 +53,7 @@ const handleEditCustomer = (customer: CustomerTypes) => {
 const saveEditedCustomer = async () => {
   if (!selectedCustomer?._id) return;
 
-  const promise = Fetch.put(`/customer/${selectedCustomer._id}`, editData);
+  const promise = Fetch.put(`/customer/edit/${selectedCustomer._id}`, editData);
 
   toast.promise(promise, {
     loading: "Xaridor yangilanmoqda...",
@@ -94,6 +94,7 @@ const handleTogglePayed = async (id: string) => {
 
 const handleDeleteCustomer = async (id: string) => {
   const promise = Fetch.delete(`/customer/${id}`);
+  mutate();
 
   toast.promise(promise, {
     loading: "Xaridor o'chirilmoqda...",
@@ -103,7 +104,7 @@ const handleDeleteCustomer = async (id: string) => {
 
   try {
     await promise;
-    mutate();
+    mutate()
   } catch (err) {
     console.error("Delete customer error:", err);
   }

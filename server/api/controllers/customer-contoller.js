@@ -56,6 +56,28 @@ export const createCustomer = async (req, res) => {
   }
 };
 
+export const editCustomer = async (req, res) => {
+  try {
+    const { name, phone, location, date } = req.body;
+    const customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
+      return res.status(404).json({ message: "Haridor topilmadi" });
+    }
+
+    customer.name = name;
+    customer.phone = phone;
+    customer.location = location;
+    customer.date = date;
+
+    await customer.save();
+
+    res.status(200).json(customer);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Haridorni yangilashda xato", error });
+  }
+};
 
 export const updateCustomer = async (req, res) => {
   try {
