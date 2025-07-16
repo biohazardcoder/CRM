@@ -6,6 +6,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Fetch } from "../middlewares/Fetch";
 import { AdminTypes } from "@/types/RootTypes";
 
+interface ErrorProps{
+  response :{
+    data:{
+      message:string
+    }
+  }
+}
+
 interface LoginResponse {
   token: string;
   data: AdminTypes;
@@ -66,8 +74,8 @@ export default function Login() {
       window.location.href = "/";
       
     } catch (error) {
-        const err = error as Error;
-        setGlobalError(err.message || "Unknown Token");
+        const err = error as ErrorProps;
+        setGlobalError(err.response.data.message || "Unknown Token");
         console.error(error);
       }
   };
