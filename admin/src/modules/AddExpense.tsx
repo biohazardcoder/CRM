@@ -20,11 +20,13 @@ export function AddExpense() {
   const [formData, setFormData] = useState<{
   [key: string]: string; 
   name: string;
+  phone:string
   amount: string;
   date: string;
 }>({
   name: "",
   amount: "",
+  phone:"",
   date: "",
 });
 
@@ -33,7 +35,7 @@ export function AddExpense() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { mutate } = useSWR("/expense", fetcher)
   const resetForm = () => {
-    setFormData({ name: "", amount:"",date:"" });
+    setFormData({ name: "", amount:"",date:"",phone:""});
     setErrors({});
   };
 
@@ -41,7 +43,7 @@ export function AddExpense() {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Qarzdor ismi majburiy.";
     if (!formData.amount.trim()) newErrors.amount = "Qarz qiymati majburiy.";
-
+    if (!formData.phone.trim()) newErrors.phone = "Raqam majburiy.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -89,36 +91,33 @@ export function AddExpense() {
         <SheetDescription>Barcha maydonlarni to‘ldiring</SheetDescription>
 
       <div className="flex flex-col gap-4 py-4">
-  {["name", "amount", "date"].map((field) => (
+  {["name","phone", "amount", "date"].map((field) => (
     <div className="space-y-1" key={field}>
-      <Label htmlFor={field}>
-        {{
-          name: "Qarzdor ismi *",
-          amount: "Qiymati",
-          date: "Sana",
-        }[field]}
-      </Label>
-
-      <Input
-        id={field}
-        name={field}
-        type={field === "amount" ? "number" : field === "date" ? "date" : "text"}
-        value={formData[field]}
-        className="custom-date"
-        onChange={(e) =>
-          setFormData({ ...formData, [field]: e.target.value })
-        }
-      />
-
-      {errors[field] && (
-        <span className="text-red-500 text-sm">{errors[field]}</span>
-      )}
-    </div>
-  ))}
-</div>
-
-
-
+            <Label htmlFor={field}>
+              {{
+                name: "Qarzdor ismi *",
+                phone: "Qarzdor raqami *",
+                amount: "Qiymati *",
+                date: "Sana",
+              }[field]}
+            </Label>
+              <Input
+                id={field}
+                name={field}
+                type={field === "amount" ? "number" : field === "date" ? "date" : "text"}
+                value={formData[field]}
+                className="custom-date"
+                placeholder={field == "name" ? "Ismi" : field =="phone" ?"991234567" :"Qiymat"}
+                onChange={(e) =>
+                  setFormData({ ...formData, [field]: e.target.value })
+                }
+              />
+              {errors[field] && (
+                <span className="text-red-500 text-sm">{errors[field]}</span>
+              )}
+            </div>
+          ))}
+        </div>
         <SheetFooter>
           <Button
             type="button"

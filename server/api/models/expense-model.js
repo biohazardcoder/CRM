@@ -5,6 +5,10 @@ const expenseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  phone:{
+    type:String,
+    required:true
+  },
   amount: {
     type: Number,
     required: true,

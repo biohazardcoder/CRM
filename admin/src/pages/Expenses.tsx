@@ -35,6 +35,7 @@ export default function Expenses() {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({
     name: "",
+    phone:"",
     amount: "",
     date: "",
   });
@@ -54,6 +55,8 @@ export default function Expenses() {
     filteredExpenses?.reduce((acc: number, item: ExpenseTypes) => acc + item.amount, 0) || 0;
 
   const handleDeleteExpense = async (id: string) => {
+    const confirmed = confirm("Rostdan ham ushbu qarzdorni o'chirmoqchimisiz?");
+  if (!confirmed) return;
     const toastId = toast.loading("Qarzdor o'chirilmoqda...");
     try {
       await Fetch.delete(`expense/${id}`);
@@ -95,7 +98,7 @@ export default function Expenses() {
   if (error) {
     return (
       <div className="flex justify-center items-center h-40">
-        <p className="text-lg font-medium text-red-600">{error}</p>
+        <p className="text-lg font-medium text-red-600">{error.response.data.message || "Malumot olishda xatolik"}</p>
       </div>
     );
   }
@@ -139,6 +142,7 @@ export default function Expenses() {
             <TableHeader className="bg-zinc-800 text-white hover:bg-zinc-700">
               <TableRow>
                 <TableHead>Ismi</TableHead>
+                <TableHead>Raqami</TableHead>
                 <TableHead>Qiymat</TableHead>
                 <TableHead>Yaratilgan</TableHead>
                 <TableHead>Amallar</TableHead>
@@ -148,7 +152,8 @@ export default function Expenses() {
               {filteredExpenses?.map((expense: ExpenseTypes, index: number) => (
                 <TableRow key={index} className="hover:bg-sky-200 transition-colors">
                   <TableCell className="font-semibold text-xl">{expense.name}</TableCell>
-                  <TableCell className="text-lg">{expense.amount}</TableCell>
+                  <TableCell className="font-semibold text-xl">{expense.phone}</TableCell>
+                  <TableCell className="text-lg">{expense.amount.toLocaleString()} so'm</TableCell>
                   <TableCell className="text-lg">{expense.date?.slice(0, 10)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -161,6 +166,7 @@ export default function Expenses() {
                             setSelectedExpense(expense);
                             setEditData({
                               name: expense.name,
+                              phone:expense.phone,
                               amount: expense.amount.toString(),
                               date: expense.date?.slice(0, 10),
                             });
@@ -184,7 +190,7 @@ export default function Expenses() {
             </TableBody>
             <TableFooter className="bg-zinc-800 text-white font-semibold">
               <TableRow>
-                <TableCell className="p-2 text-right" colSpan={1}>
+                <TableCell className="p-2 text-right" colSpan={2}>
                   Umumiy qarz:
                 </TableCell>
                 <TableCell className="p-2">{totalAmount.toLocaleString()} so'm</TableCell>
@@ -202,6 +208,12 @@ export default function Expenses() {
             value={editData.name}
             onChange={(e) => setEditData({ ...editData, name: e.target.value })}
             placeholder="Ism"
+          />
+          <Input
+            type="text"
+            value={editData.phone}
+            onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+            placeholder="Raqami"
           />
           <Input
             type="number"

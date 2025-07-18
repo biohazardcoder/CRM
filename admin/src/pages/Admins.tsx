@@ -38,7 +38,7 @@ export default function Admins() {
   if (error) {
     return (
       <div className="flex justify-center items-center h-40">
-        <p className="text-lg font-medium text-red-600">{error}</p>
+        <p className="text-lg font-medium text-red-600">{error.response.data.message || "Malumot olishda xatolik"}</p>
       </div>
     );
   }

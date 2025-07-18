@@ -46,6 +46,7 @@ export interface ProductTypes {
 
 export interface ExpenseTypes{
   _id:string
+  phone:string
   name:string
   amount:number
   date:string

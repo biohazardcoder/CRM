@@ -93,6 +93,8 @@ const handleTogglePayed = async (id: string) => {
 
 
 const handleDeleteCustomer = async (id: string) => {
+   const confirmed = confirm("Rostdan ham ushbu xaridorni o'chirmoqchimisiz?");
+  if (!confirmed) return;
   const promise = Fetch.delete(`/customer/${id}`);
   mutate();
 
@@ -175,7 +177,7 @@ const groupedProducts = Array.from(groupedProductsMap.values());
   if (error) {
     return (
       <div className="flex justify-center items-center h-40">
-        <p className="text-lg font-medium text-red-600">{error}</p>
+        <p className="text-lg font-medium text-red-600">{error.response.data.message || "Malumot olishda xatolik"}</p>
       </div>
     );
   }
@@ -448,27 +450,25 @@ const groupedProducts = Array.from(groupedProductsMap.values());
 </Modal>
     <Modal open={!!confirmPayedId} onClose={() => setConfirmPayedId(null)} title="Tasdiqlash" >
        <p>Necha kun ishlatganini belgilang</p>
-<Input
-  value={days}
-  onChange={(e) => setDays(e.target.value)}
-  type="number"
-  min={1}
-  className="my-2"
-/>
-<h1>
-  {days} kunda = {" "}
-  {days ? (
-    selectedCustomer?.buyedProducts
-      ? (
-          selectedCustomer.buyedProducts.reduce(
-            (acc, p) => acc + (p.price ?? 0) * (p.quantity ?? 0),
-            0
-          ) * Number(days)
-        ).toLocaleString()
-      : '0'
-  ) : '0'} so'm
-</h1>
-
+      <Input
+        value={days}
+        onChange={(e) => setDays(e.target.value)}
+        type="text"
+        className="my-2"
+      />
+      <h1>
+        {days} kunda = {" "}
+        {days ? (
+          selectedCustomer?.buyedProducts
+            ? (
+                selectedCustomer.buyedProducts.reduce(
+                  (acc, p) => acc + (p.price ?? 0) * (p.quantity ?? 0),
+                  0
+                ) * Number(days)
+              ).toLocaleString()
+            : '0'
+        ) : '0'} so'm 
+      </h1>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="destructive" onClick={() => setConfirmPayedId(null)}>Yo‘q</Button>
           <Button onClick={() => confirmPayedId && handleTogglePayed(confirmPayedId)}>Ha, belgilash</Button>

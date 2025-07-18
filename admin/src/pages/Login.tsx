@@ -75,7 +75,7 @@ export default function Login() {
       
     } catch (error) {
         const err = error as ErrorProps;
-        setGlobalError(err.response.data.message || "Unknown Token");
+        setGlobalError(err.response.data.message || "Xatolik yuzberdi");
         console.error(error);
       }
   };

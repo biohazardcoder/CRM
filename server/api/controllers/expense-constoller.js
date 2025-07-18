@@ -23,10 +23,11 @@ export const getExpenseById = async (req, res) => {
 
 export const CreateExpense = async (req,res) => {
     try {
-        const {name, amount, date} = req.body
+        const {name, amount, date,phone} = req.body
 
         const newExpense = await Expense.create({
             name,
+            phone,
             amount,
             date
         })
@@ -53,12 +54,12 @@ export const deleteExpense = async (req, res) => {
 
 export const editExpense = async (req, res) => {
   try {
-    const { name, amount, date } = req.body;
+    const { name, amount, date,phone } = req.body;
     const { id } = req.params;
 
     const updatedExpense = await Expense.findByIdAndUpdate(
       id,
-      { name, amount, date },
+      { name, amount, date,phone },
       { new: true } 
     );
 
