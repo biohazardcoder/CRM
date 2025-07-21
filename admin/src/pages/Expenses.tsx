@@ -151,9 +151,17 @@ export default function Expenses() {
             <TableBody>
               {filteredExpenses?.map((expense: ExpenseTypes, index: number) => (
                 <TableRow key={index} className="hover:bg-sky-200 transition-colors">
-                  <TableCell className="font-semibold text-xl">{expense.name}</TableCell>
+                  <TableCell
+                    className={`font-semibold text-xl ${
+                      (new Date().getTime() - new Date(expense.date).getTime()) / (1000 * 60 * 60 * 24) > 10
+                        ? "text-red-600"
+                        : ""
+                    }`}
+                  >
+                    {expense.name}
+                  </TableCell>
                   <TableCell className="font-semibold text-xl">{expense.phone}</TableCell>
-                  <TableCell className="text-lg">{expense.amount.toLocaleString()} so'm</TableCell>
+                  <TableCell className="text-lg">{expense?.amount?.toLocaleString()} so'm</TableCell>
                   <TableCell className="text-lg">{expense.date?.slice(0, 10)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -167,7 +175,7 @@ export default function Expenses() {
                             setEditData({
                               name: expense.name,
                               phone:expense.phone,
-                              amount: expense.amount.toString(),
+                              amount: expense?.amount?.toString(),
                               date: expense.date?.slice(0, 10),
                             });
                             setEditMode(true);

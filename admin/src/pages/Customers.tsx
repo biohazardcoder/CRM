@@ -255,7 +255,16 @@ const groupedProducts = Array.from(groupedProductsMap.values());
                       ?.reduce((acc, p) => acc + p.price * p.quantity, 0)
                       .toLocaleString()} so'm`
                   )}</td>
-                  <td className="p-2">{c.phone}</td>
+                  <td
+                    className={`p-2 ${
+                      !c.payed &&
+                      ( (new Date().getTime() - new Date(c.date).getTime()) / (1000 * 60 * 60 * 24) > 10 )
+                        ? "text-red-600"
+                        : ""
+                    }`}
+                  >
+                    {c.phone}
+                  </td>
                   <td className="p-2">{c.location}</td>
                   <td className="p-2">{c.date}</td>
                   <td className="p-2">
