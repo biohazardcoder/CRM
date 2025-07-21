@@ -113,21 +113,36 @@ const handleDeleteCustomer = async (id: string) => {
 };
 
 
-const filteredCustomers = customers?.filter((c: CustomerTypes) => {
-  const matchesPayed = c.payed === payed;
+const filteredCustomers = customers
+  ?.filter((c: CustomerTypes) => {
+    const matchesPayed = c.payed === payed;
 
-  const matchesDateRange =
-    startDate && endDate
-      ? new Date(c.date) >= new Date(startDate) && new Date(c.date) <= new Date(endDate)
+    const matchesDateRange =
+      startDate && endDate
+        ? new Date(c.date) >= new Date(startDate) && new Date(c.date) <= new Date(endDate)
+        : true;
+
+    const matchesSearch = search
+      ? c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.phone.includes(search)
       : true;
 
-  const matchesSearch = search
-    ? c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search)
-    : true;
+    return matchesPayed && matchesDateRange && matchesSearch;
+  })
+  ?.sort((a:CustomerTypes, b:CustomerTypes) => {
+    if (!payed) {
+      const daysA = (new Date().getTime() - new Date(a.date).getTime()) / (1000 * 60 * 60 * 24);
+      const daysB = (new Date().getTime() - new Date(b.date).getTime()) / (1000 * 60 * 60 * 24);
 
-  return matchesPayed && matchesDateRange && matchesSearch;
-});
+      const isAOverdue = !a.payed && daysA > 10;
+      const isBOverdue = !b.payed && daysB > 10;
+
+      if (isAOverdue && !isBOverdue) return -1;
+      if (!isAOverdue && isBOverdue) return 1;
+    }
+
+    return 0;
+  });
 
 const totalAmount = filteredCustomers?.reduce((acc: number, customer: CustomerTypes) => {
   const customerTotal = typeof customer.all === "number" && customer.all > 0
